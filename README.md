@@ -1,0 +1,2 @@
+# iterMAG
+Iterative MAG assembly.
