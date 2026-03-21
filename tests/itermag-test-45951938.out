@@ -1,0 +1,14 @@
+Assuming unrestricted shared filesystem usage.
+host: p0021.ten.osc.edu
+Building DAG of jobs...
+MissingInputException in rule all in file "/fs/ess/PDS0325/bioinformatic_tools/iterMAG/src/itermag/workflow/Snakefile", line 12:
+Missing input files for rule all:
+    affected files:
+        iter_1/binning/bins
+Snakemake pipeline failed with error: Command '['snakemake', '--snakefile', '/fs/ess/PDS0325/bioinformatic_tools/iterMAG/src/itermag/workflow/Snakefile', '--cores', '40', '--directory', 'test_run', '--config', 'forward=/fs/ess/PDS0325/bioinformatic_tools/iterMAG/tests/data/reads/2022_IncS_FSU.v72.S25_60d_r4.subsampled1mil.1.fq.gz', 'reverse=/fs/ess/PDS0325/bioinformatic_tools/iterMAG/tests/data/reads/2022_IncS_FSU.v72.S25_60d_r4.subsampled1mil.2.fq.gz', 'threads=40', 'iteration=1']' returned non-zero exit status 1.
+Running iterMAG on data/reads/2022_IncS_FSU.v72.S25_60d_r4.subsampled1mil.1.fq.gz and data/reads/2022_IncS_FSU.v72.S25_60d_r4.subsampled1mil.2.fq.gz with 40 threads...
+Launching Snakemake workflow...
+Running iteration 1...
+
+Running command:
+ snakemake --snakefile /fs/ess/PDS0325/bioinformatic_tools/iterMAG/src/itermag/workflow/Snakefile --cores 40 --directory test_run --config forward=/fs/ess/PDS0325/bioinformatic_tools/iterMAG/tests/data/reads/2022_IncS_FSU.v72.S25_60d_r4.subsampled1mil.1.fq.gz reverse=/fs/ess/PDS0325/bioinformatic_tools/iterMAG/tests/data/reads/2022_IncS_FSU.v72.S25_60d_r4.subsampled1mil.2.fq.gz threads=40 iteration=1

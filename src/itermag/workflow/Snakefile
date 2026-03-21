@@ -1,0 +1,19 @@
+# Pull the variables we passed from Python!
+forward_reads = config.get("forward")
+reverse_reads = config.get("reverse")
+
+# 1. Print out the exact string we are telling Snakemake to build so we can verify it doesn't have a typo!
+target_file = f"iter_{config['iteration']}/bin_mapping/reads.1.fq.gz"
+#print("\n[DEBUG] Snakemake is targeting:", target_file, "\n")
+
+# 2. Put rule all at the VERY TOP so Snakemake legally recognizes it as the default target
+rule all:
+    input:
+        target_file
+
+# 3. Include definitions
+include: "rules/assembly.smk"
+include: "rules/symlink.smk"
+include: "rules/readmapping.smk"
+include: "rules/binning.smk"
+include: "rules/map_reads_mags.smk"

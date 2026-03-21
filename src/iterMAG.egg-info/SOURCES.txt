@@ -1,0 +1,17 @@
+LICENSE
+README.md
+pyproject.toml
+src/iterMAG.egg-info/PKG-INFO
+src/iterMAG.egg-info/SOURCES.txt
+src/iterMAG.egg-info/dependency_links.txt
+src/iterMAG.egg-info/entry_points.txt
+src/iterMAG.egg-info/requires.txt
+src/iterMAG.egg-info/top_level.txt
+src/itermag/__init__.py
+src/itermag/cli.py
+src/itermag/workflow.py
+src/itermag/utils/config.py
+src/itermag/utils/logging.py
+src/itermag/utils/paths.py
+src/itermag/workflow/scripts/summarize_bins.py
+tests/test_cli.py
