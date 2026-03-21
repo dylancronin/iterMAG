@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iterMAG"
+version = "0.0.0"
+description = "Iterative MAG assembly."
+authors = [
+  { name="Dylan Cronin", email="cronin.dylan.r@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "snakemake>=7.0.0",
+    "pyyaml>=6.0"
+]
+
+[project.scripts]
+itermag = "itermag.cli:main"
