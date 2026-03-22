@@ -17,7 +17,10 @@ rule extract_reads:
         coverm make -r iter_{wildcards.iteration}/bin_mapping/all_mag_contigs.fna \
             -1 {config[forward]} \
             -2 {config[reverse]} \
-            -o iter_{wildcards.iteration}/bin_mapping/coverm.bam
+            -o iter_{wildcards.iteration}/bin_mapping/coverm
+        
+        mv iter_{wildcards.iteration}/bin_mapping/coverm/*.bam iter_{wildcards.iteration}/bin_mapping/coverm.bam
+        rm -rf iter_{wildcards.iteration}/bin_mapping/coverm
 
         coverm filter \
             -b iter_{wildcards.iteration}/bin_mapping/coverm.bam \
@@ -26,7 +29,7 @@ rule extract_reads:
             --min-read-percent-identity-pair 95 \
             --min-read-aligned-percent-pair 75 \
             --proper-pairs-only
-        
+
         samtools fastq \
             -@ $(({threads} - 1)) \
             {output.bam} \

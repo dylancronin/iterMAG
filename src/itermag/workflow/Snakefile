@@ -6,6 +6,9 @@ reverse_reads = config.get("reverse")
 target_file = f"iter_{config['iteration']}/bin_mapping/reads.1.fq.gz"
 #print("\n[DEBUG] Snakemake is targeting:", target_file, "\n")
 
+wildcard_constraints:
+    iteration=str(config["iteration"])
+
 # 2. Put rule all at the VERY TOP so Snakemake legally recognizes it as the default target
 rule all:
     input:

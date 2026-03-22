@@ -11,12 +11,14 @@ def run_workflow(forward, reverse, output, threads, genomes=None):
 
     print("Launching Snakemake workflow...")
 
-    max_iterations = 1
+    max_iterations = 2
     
     for current_iter in range(1, max_iterations + 1):
         print(f"Running iteration {current_iter}...")
 
-        
+        if current_iter != 1:
+            forward = f"iter_{current_iter-1}/bin_mapping/reads.1.fq.gz"
+            reverse = f"iter_{current_iter-1}/bin_mapping/reads.2.fq.gz"
         
         # Build the command
         cmd = [
