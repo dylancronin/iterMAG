@@ -2,6 +2,8 @@
 
 **iterMAG** is a Snakemake-based bioinformatic pipeline for **Iterative Metagenome-Assembled Genome (MAG) Assembly**. 
 
+**WARNING**: This pipeline is currently under development, use with caution.
+
 It improves MAG recovery by iteratively assembling reads, binning contigs, and then re-assembling only the reads that did not map to the bins in the previous round. This allows for the discovery of lower-abundance organisms that might be masked by dominant species in a traditional single-pass assembly.
 
 ## Workflow Overview
@@ -49,6 +51,7 @@ itermag run -1 <forward_reads.fq.gz> -2 <reverse_reads.fq.gz> -o <output_dir> -t
 - `-o`, `--output`: Output directory where results and iterations will be stored.
 - `-t`, `--threads`: Number of CPU threads to use.
 - `-g`, `--genomes`: (Optional) Path to a directory containing existing genomes/bins.
+- `-it`, `--iterations`: Number of iterations to run (default: 5).
 
 ## Directory Structure
 The output directory will contain subdirectories for each iteration:
