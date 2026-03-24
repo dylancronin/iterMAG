@@ -14,7 +14,7 @@ source /fs/ess/PDS0325/bioinformatic_tools/miniforge3/bin/activate iterMAG-test
 
 # Run the pipeline
 itermag run \
-    -1 data/reads/2022_IncS_FSU.v72.S25_60d_r4.subsampled1mil.1.fq.gz \
-    -2 data/reads/2022_IncS_FSU.v72.S25_60d_r4.subsampled1mil.2.fq.gz \
+    -1 data/full-reads/2022_IncS_FSU.v40.S15_30d_r4.1.fq.gz \
+    -2 data/full-reads/2022_IncS_FSU.v40.S15_30d_r4.2.fq.gz \
     -o test_run \
     -t 40

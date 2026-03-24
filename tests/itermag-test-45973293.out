@@ -1,0 +1,44 @@
+Assuming unrestricted shared filesystem usage.
+host: p0019.ten.osc.edu
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 40
+Rules claiming more threads will be scaled down.
+Job stats:
+job                 count
+----------------  -------
+symlink_reads           1
+megahit_assembly        1
+map_reads               1
+binning                 1
+extract_reads           1
+all                     1
+total                   6
+
+Select jobs to execute...
+Execute 1 jobs...
+
+[Tue Mar 24 04:00:46 2026]
+localrule symlink_reads:
+    input: /fs/ess/PDS0325/bog-incubations/sample-processing/10_concatenate_reads/reads/2022_IncS_FSU.v40.S15_30d_r4.1.fq.gz, /fs/ess/PDS0325/bog-incubations/sample-processing/10_concatenate_reads/reads/2022_IncS_FSU.v40.S15_30d_r4.2.fq.gz
+    output: iter_1/reads/reads.1.fq.gz, iter_1/reads/reads.2.fq.gz
+    jobid: 4
+    reason: Missing output files: iter_1/reads/reads.1.fq.gz, iter_1/reads/reads.2.fq.gz
+    wildcards: iteration=1
+    resources: tmpdir=/tmp
+[Tue Mar 24 04:00:48 2026]
+Finished jobid: 4 (Rule: symlink_reads)
+1 of 6 steps (17%) done
+Select jobs to execute...
+Execute 1 jobs...
+
+[Tue Mar 24 04:00:48 2026]
+localrule megahit_assembly:
+    input: iter_1/reads/reads.1.fq.gz, iter_1/reads/reads.2.fq.gz
+    output: iter_1/assembly/contigs.fa
+    log: iter_1/assembly/megahit.log
+    jobid: 5
+    reason: Missing output files: iter_1/assembly/contigs.fa; Input files updated by another job: iter_1/reads/reads.1.fq.gz, iter_1/reads/reads.2.fq.gz
+    wildcards: iteration=1
+    threads: 40
+    resources: tmpdir=/tmp

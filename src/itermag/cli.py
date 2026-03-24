@@ -13,6 +13,7 @@ def main():
     run_parser.add_argument("-o", "--output", required=True, help="Output directory.")
     run_parser.add_argument("-t", "--threads", required=True, help="Number of threads.")
     run_parser.add_argument("-g", "--genomes", required=False, help="Genome directory.")
+    run_parser.add_argument("-it", "--max_iterations", type=int, default=5, help="Maximum number of iterations (default: 5).")
     
     args = parser.parse_args() #parse user input
 
@@ -23,7 +24,8 @@ def main():
             reverse=args.reverse,
             output=args.output,
             threads=args.threads,
-            genomes=args.genomes
+            genomes=args.genomes,
+            max_iterations=args.max_iterations
         )
     
 

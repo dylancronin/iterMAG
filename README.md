@@ -30,7 +30,7 @@ The following tools must be in your PATH:
 ### Setup
 Clone the repository and install the package:
 ```bash
-git clone <repo-url>
+git clone https://github.com/dylancronin/iterMAG.git
 cd iterMAG
 pip install .
 ```
@@ -64,5 +64,3 @@ output_dir/
     ├── ...
 ```
 
-## Author
-**Dylan Cronin** (cronin.dylan.r@gmail.com)

@@ -1,24 +1,34 @@
 import subprocess
 import sys
 from pathlib import Path
+import os
 
-def run_workflow(forward, reverse, output, threads, genomes=None):
+def run_workflow(forward, reverse, output, threads, genomes=None, max_iterations=5):
     # Resolve absolute paths for inputs
-    forward = Path(forward).resolve()
-    reverse = Path(reverse).resolve()
+    forward = str(Path(forward).resolve())
+    reverse = str(Path(reverse).resolve())
+    output = str(Path(output).resolve())
     if genomes:
         genomes = str(Path(genomes).resolve())
 
     print("Launching Snakemake workflow...")
 
-    max_iterations = 2
-    
+    last_iter_mags = 0
+
     for current_iter in range(1, max_iterations + 1):
         print(f"Running iteration {current_iter}...")
 
         if current_iter != 1:
-            forward = f"iter_{current_iter-1}/bin_mapping/reads.1.fq.gz"
-            reverse = f"iter_{current_iter-1}/bin_mapping/reads.2.fq.gz"
+            prev_iter_dir = Path(output) / f"iter_{current_iter-1}"
+            forward = str((prev_iter_dir / "bin_mapping/reads.1.fq.gz").resolve())
+            reverse = str((prev_iter_dir / "bin_mapping/reads.2.fq.gz").resolve())
+            
+            # Check if directory exists before listing
+            binning_dir = prev_iter_dir / "binning"
+            if binning_dir.exists():
+                last_iter_mags = len([f for f in os.listdir(binning_dir) if f.endswith(".fa")])
+            else:
+                last_iter_mags = 0
         
         # Build the command
         cmd = [
@@ -38,9 +48,14 @@ def run_workflow(forward, reverse, output, threads, genomes=None):
             f"genomes={genomes}"
         ])
 
-        print(f"\nRunning command:\n {' '.join(cmd)}")
+        
 
         try:
-            subprocess.run(cmd, check=True)
+            if (last_iter_mags == 0 and current_iter > 1):
+                print("No MAGs recovered in the previous iteration.\nIterations complete.")
+                break
+            else:
+                print(f"\nRunning command:\n {' '.join(cmd)}")
+                subprocess.run(cmd, check=True)
         except subprocess.CalledProcessError as e:
             print(f"Snakemake pipeline failed with error: {e}", file=sys.stderr)
