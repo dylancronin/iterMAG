@@ -1,2 +1,7 @@
 tests/data/
 tests/test_run/
+
+# Logs and build artifacts
+*.out
+*.egg-info/
+.snakemake/
