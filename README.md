@@ -8,7 +8,7 @@ It improves MAG recovery by iteratively assembling reads, binning contigs, and t
 
 ## Workflow Overview
 
-The pipeline currently runs for **2 iterations** by default:
+The pipeline currently runs for **5 iterations** by default:
 
 1.  **Assembly**: Initial assembly using **MEGAHIT** (`meta-large` preset).
 2.  **Mapping**: Read mapping and coverage calculation using **CoverM**.
@@ -30,11 +30,12 @@ The following tools must be in your PATH:
 - [Snakemake](https://snakemake.readthedocs.io/)
 
 ### Setup
-Clone the repository and install the package:
+Clone the repository and create the Conda environment:
 ```bash
 git clone https://github.com/dylancronin/iterMAG.git
 cd iterMAG
-pip install .
+conda env create -f environment.yml
+conda activate itermag-0.0.0
 ```
 
 ## Usage

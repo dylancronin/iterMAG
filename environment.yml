@@ -1,0 +1,15 @@
+name: itermag-0.0.0
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - snakemake>=8.0
+  - pyyaml=6.0
+  - megahit=1.2.9
+  - metabat2=2.15
+  - coverm=0.7.0
+  - pip
+  - pip:
+    - .
