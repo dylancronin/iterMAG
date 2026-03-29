@@ -1,7 +1,8 @@
 rule extract_reads:
     input:
         #genome_dir = "iter_{iteration}/binning/"
-        bininfo = "iter_{iteration}/binning/iter{iteration}_bins.BinInfo.txt"
+        #bininfo = "iter_{iteration}/binning/iter{iteration}_bins.BinInfo.txt"
+        quality_report = "iter_{iteration}/binning_filtered/quality_report.filtered.tsv"
     output:
         bam = "iter_{iteration}/bin_mapping/coverm.filtered.bam",
         reads_unmapped_1 = "iter_{iteration}/bin_mapping/reads.1.fq.gz",
@@ -12,7 +13,7 @@ rule extract_reads:
         """
         mkdir -p iter_{wildcards.iteration}/bin_mapping
         
-        cat iter_{wildcards.iteration}/binning/*.fa > iter_{wildcards.iteration}/bin_mapping/all_mag_contigs.fna 2>/dev/null || touch iter_{wildcards.iteration}/bin_mapping/all_mag_contigs.fna
+        cat iter_{wildcards.iteration}/binning_filtered/*.fa > iter_{wildcards.iteration}/bin_mapping/all_mag_contigs.fna 2>/dev/null || touch iter_{wildcards.iteration}/bin_mapping/all_mag_contigs.fna
 
         coverm make -r iter_{wildcards.iteration}/bin_mapping/all_mag_contigs.fna \
             -1 {config[forward]} \

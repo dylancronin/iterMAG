@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import os
 
-def run_workflow(forward, reverse, output, threads, genomes=None, max_iterations=5):
+def run_workflow(forward, reverse, output, threads, genomes=None, max_iterations=5, checkm_db_path=None):
     # Resolve absolute paths for inputs
     forward = str(Path(forward).resolve())
     reverse = str(Path(reverse).resolve())
@@ -33,6 +33,8 @@ def run_workflow(forward, reverse, output, threads, genomes=None, max_iterations
         # Build the command
         cmd = [
             "snakemake",
+            "--use-conda",
+            "--conda-frontend", "mamba",
             "--snakefile", str(Path(__file__).parent / "workflow/Snakefile"),
             "--cores", str(threads),
             "--directory", output,
@@ -40,7 +42,8 @@ def run_workflow(forward, reverse, output, threads, genomes=None, max_iterations
             f"forward={forward}", 
             f"reverse={reverse}",
             f"threads={threads}",
-            f"iteration={current_iter}"
+            f"iteration={current_iter}",
+            f"checkm_db_path={checkm_db_path}"
         ]
 
         if genomes is not None:
