@@ -25,9 +25,9 @@ def run_workflow(forward, reverse, output, threads, genomes=None, max_iterations
             reverse = str((prev_iter_dir / "bin_mapping/reads.2.fq.gz").resolve())
             
             # Check if directory exists before listing
-            binning_dir = prev_iter_dir / "binning"
-            if binning_dir.exists():
-                last_iter_mags = len([f for f in os.listdir(binning_dir) if f.endswith(".fa")])
+            binning_filtered = prev_iter_dir / "binning_filtered"
+            if binning_filtered.exists():
+                last_iter_mags = len([f for f in os.listdir(binning_filtered) if f.endswith(".fa")])
             else:
                 last_iter_mags = 0
         

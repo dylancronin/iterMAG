@@ -13,12 +13,18 @@ rule checkm:
         "../envs/checkm.yaml"
     shell:
         """
-        checkm2 predict -t {threads} \
-            -o iter_{wildcards.iteration}/checkm2 \
-            -i iter_{wildcards.iteration}/binning/ \
-            --database_path {config[checkm_db_path]} \
-            --threads {threads} \
-            --remove_intermediates
+        if ls iter_{wildcards.iteration}/binning/*.fa 1> /dev/null 2>&1; then
+            checkm2 predict -t {threads} \
+                -x fa \
+                -o iter_{wildcards.iteration}/checkm2 \
+                -i iter_{wildcards.iteration}/binning/ \
+                --database_path {config[checkm_db_path]} \
+                --threads {threads} \
+                --remove_intermediates
+        else
+            mkdir -p iter_{wildcards.iteration}/checkm2
+            echo -e "Name\tCompleteness\tContamination" > {output.quality_report}
+        fi
         """
 
 rule filter_checkm:

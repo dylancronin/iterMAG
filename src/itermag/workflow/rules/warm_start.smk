@@ -16,7 +16,13 @@ rule warm_start_bins:
             for f in os.listdir(input_dir):
                 if f.endswith((".fa", ".fasta", ".fna")):
                     source = Path(input_dir) / f
-                    dest = Path(output.bin_dir) / f
+                    if f.endswith(".fasta"):
+                        name = f[:-6]
+                    elif f.endswith(".fna"):
+                        name = f[:-4]
+                    else:
+                        name = f[:-3]
+                    dest = Path(output.bin_dir) / f"{name}.fa"
                     if dest.exists():
                         dest.unlink()
                     dest.symlink_to(source.resolve())
