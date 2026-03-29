@@ -3,11 +3,12 @@ import sys
 from pathlib import Path
 import os
 
-def run_workflow(forward, reverse, output, threads, genomes=None, max_iterations=5, checkm_db_path=None):
+def run_workflow(forward, reverse, output, threads, genomes=None, max_iterations=5, checkm_db_path="/fs/ess/PDS0325/bioinformatic_tools/aviary-0.12.0/checkm2/uniref100.KO.1.dmnd"):
     # Resolve absolute paths for inputs
     forward = str(Path(forward).resolve())
     reverse = str(Path(reverse).resolve())
     output = str(Path(output).resolve())
+    checkm_db_path = str(Path(checkm_db_path).resolve())
     if genomes:
         genomes = str(Path(genomes).resolve())
 
