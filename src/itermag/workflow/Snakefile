@@ -15,9 +15,14 @@ rule all:
         target_file
 
 # 3. Include definitions
-include: "rules/assembly.smk"
+# In iteration 1, if genomes are provided, we skip assembly, readmapping, and initial binning
+if config.get("genomes") and str(config["iteration"]) == "1":
+    include: "rules/warm_start.smk"
+else:
+    include: "rules/assembly.smk"
+    include: "rules/readmapping.smk"
+    include: "rules/binning.smk"
+
 include: "rules/symlink.smk"
-include: "rules/readmapping.smk"
-include: "rules/binning.smk"
 include: "rules/map_reads_mags.smk"
 include: "rules/checkm.smk"
