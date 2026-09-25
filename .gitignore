@@ -1,7 +1,10 @@
 tests/data/
 tests/test_run/
+tests/verify_run/
+tests/full_test_2/
 
 # Logs and build artifacts
 *.out
 *.egg-info/
 .snakemake/
+__pycache__/

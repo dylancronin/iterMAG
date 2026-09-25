@@ -13,7 +13,9 @@ rule checkm:
         "../envs/checkm.yaml"
     shell:
         """
+        set -euo pipefail
         if ls iter_{wildcards.iteration}/binning/*.fa 1> /dev/null 2>&1; then
+            rm -rf iter_{wildcards.iteration}/checkm2
             checkm2 predict -t {threads} \
                 -x fa \
                 -o iter_{wildcards.iteration}/checkm2 \
@@ -23,7 +25,7 @@ rule checkm:
                 --remove_intermediates
         else
             mkdir -p iter_{wildcards.iteration}/checkm2
-            echo -e "Name\tCompleteness\tContamination" > {output.quality_report}
+            echo -e "Name\\tCompleteness\\tContamination" > {output.quality_report}
         fi
         """
 
@@ -36,12 +38,21 @@ rule filter_checkm:
         def apply_simlink(bin_name):
             source_path = f"iter_{wildcards.iteration}/binning/{bin_name}.fa"
             dest_path = f"iter_{wildcards.iteration}/binning_filtered/{bin_name}.fa"
+            if not os.path.exists(source_path):
+                return
             if os.path.exists(dest_path):
                 os.remove(dest_path)
             os.symlink(os.path.abspath(source_path), dest_path)
-        
+
         df = pd.read_csv(input.quality_report, sep="\t")
-        df_filtered = df[(df["Completeness"] > 70) & (df["Contamination"] < 10)]
+        if not df.empty and {'Completeness', 'Contamination', 'Name'}.issubset(df.columns):
+            df_filtered = df[
+                (df["Completeness"] > 70) & (df["Contamination"] < 10)
+            ].copy()
+        else:
+            df_filtered = df.copy()
+
         os.makedirs(f"iter_{wildcards.iteration}/binning_filtered", exist_ok=True)
-        df_filtered["Name"].apply(apply_simlink)
+        if not df_filtered.empty and "Name" in df_filtered.columns:
+            df_filtered["Name"].apply(apply_simlink)
         df_filtered.to_csv(output.filtered_report, sep="\t", index=False)
