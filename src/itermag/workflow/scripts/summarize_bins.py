@@ -6,6 +6,7 @@ Usage:
 """
 
 import argparse
+import gzip
 from pathlib import Path
 
 import pandas as pd
@@ -21,7 +22,11 @@ def count_mags(output, iteration):
 def count_reads(path):
     if not path or not Path(path).exists():
         return None
-    return Path(path).stat().st_size > 0
+    with open(path, "rb") as handle:
+        compressed = handle.read(2) == b"\x1f\x8b"
+    opener = gzip.open if compressed else open
+    with opener(path, "rt") as handle:
+        return bool(handle.read(1))
 
 
 def build_summary(output, completed_iterations, report_tsv="quality_report.filtered.tsv"):
@@ -35,9 +40,10 @@ def build_summary(output, completed_iterations, report_tsv="quality_report.filte
         )
         n_mags = count_mags(output, iteration)
         reads_1 = Path(output) / f"iter_{iteration}" / "bin_mapping" / "reads.1.fq.gz"
-        has_reads = reads_1.exists() and reads_1.stat().st_size > 0
-        if n_mags == 0:
-            has_reads = True
+        hifi_reads = reads_1.with_name("reads.fq.gz")
+        if hifi_reads.exists():
+            reads_1 = hifi_reads
+        has_reads = bool(count_reads(reads_1))
 
         avg_comp = None
         avg_cont = None

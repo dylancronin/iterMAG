@@ -19,3 +19,6 @@ dependencies = [
 
 [project.scripts]
 itermag = "itermag.cli:main"
+
+[tool.setuptools.package-data]
+itermag = ["workflow/Snakefile", "workflow/rules/*.smk", "workflow/envs/*.yaml", "workflow/scripts/*.py"]
