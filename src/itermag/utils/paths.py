@@ -33,8 +33,9 @@ def bin_mapping_dir(output, iteration):
     return iter_dir(output, iteration) / "bin_mapping"
 
 
-def reads(output, iteration, mate):
-    return bin_mapping_dir(output, iteration) / f"reads.{mate}.fq.gz"
+def reads(output, iteration, mate=None):
+    name = "reads.fq.gz" if mate is None else f"reads.{mate}.fq.gz"
+    return bin_mapping_dir(output, iteration) / name
 
 
 def bininfo(output, iteration):

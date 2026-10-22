@@ -1,28 +1,32 @@
-# Pull the variables we passed from Python!
-forward_reads = config.get("forward")
-reverse_reads = config.get("reverse")
-
-# 1. Print out the exact string we are telling Snakemake to build so we can verify it doesn't have a typo!
-target_file = f"iter_{config['iteration']}/bin_mapping/reads.1.fq.gz"
-#print("\n[DEBUG] Snakemake is targeting:", target_file, "\n")
+read_type = config.get("read_type", "short")
+if read_type not in ("short", "hifi"):
+    raise ValueError("read_type must be short or hifi")
+warm_start = bool(config.get("genomes")) and str(config["iteration"]) == "1"
+target_file = (
+    f"iter_{config['iteration']}/bin_mapping/reads.fq.gz"
+    if read_type == "hifi"
+    else f"iter_{config['iteration']}/bin_mapping/reads.1.fq.gz"
+)
 
 wildcard_constraints:
     iteration=str(config["iteration"])
 
-# 2. Put rule all at the VERY TOP so Snakemake legally recognizes it as the default target
 rule all:
     input:
         target_file
 
-# 3. Include definitions
-# In iteration 1, if genomes are provided, we skip assembly, readmapping, and initial binning
-if config.get("genomes") and str(config["iteration"]) == "1":
+if read_type == "hifi":
+    include: "rules/hifi.smk"
+else:
+    if not warm_start:
+        include: "rules/assembly.smk"
+        include: "rules/readmapping.smk"
+    include: "rules/symlink.smk"
+    include: "rules/map_reads_mags.smk"
+
+if warm_start:
     include: "rules/warm_start.smk"
 else:
-    include: "rules/assembly.smk"
-    include: "rules/readmapping.smk"
     include: "rules/binning.smk"
 
-include: "rules/symlink.smk"
-include: "rules/map_reads_mags.smk"
 include: "rules/checkm.smk"

@@ -12,6 +12,11 @@ rule binning:
         mkdir -p iter_{wildcards.iteration}/binning
         rm -f iter_{wildcards.iteration}/binning/iter{wildcards.iteration}_bins.*
 
+        if [ ! -s {input.contigs:q} ]; then
+            touch {output.bins:q}
+            exit 0
+        fi
+
         if metabat2 \
             -i {input.contigs} \
             -o iter_{wildcards.iteration}/binning/iter{wildcards.iteration}_bins \
@@ -27,4 +32,5 @@ rule binning:
                 touch {output.bins}
             fi
         fi
+        touch {output.bins:q}
         """

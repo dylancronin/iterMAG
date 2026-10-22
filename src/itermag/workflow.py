@@ -1,23 +1,30 @@
+import json
 import subprocess
 import sys
 from pathlib import Path
 
 from itermag.utils import paths
-from itermag.utils.config import InputError, validate_run_args
+from itermag.utils.config import InputError, validate_run_args, sanity_check_environment
+from itermag.utils.fastq import count_reads
 from itermag.utils.logging import get_logger
 
 DEFAULT_CHECKM_DB = "/fs/ess/PDS0325/bioinformatic_tools/aviary-0.12.0/checkm2/uniref100.KO.1.dmnd"
 
+DEFAULT_MYLOASM_ENV = "/fs/ess/PDS0325/bioinformatic_tools/miniforge3/envs/myloasm-0.7.0"
+
 
 def run_workflow(
-    forward,
-    reverse,
-    output,
-    threads,
+    forward=None,
+    reverse=None,
+    output=None,
+    threads=1,
     genomes=None,
     max_iterations=5,
     checkm_db_path=DEFAULT_CHECKM_DB,
     conda_prefix=None,
+    read_type="short",
+    long_reads=None,
+    myloasm_env=DEFAULT_MYLOASM_ENV,
 ):
     try:
         args = validate_run_args(
@@ -27,11 +34,22 @@ def run_workflow(
             threads=threads,
             genomes=genomes,
             checkm_db_path=checkm_db_path,
+            read_type=read_type,
+            long_reads=long_reads,
         )
-    except InputError as e:
+        if int(max_iterations) < 1:
+            raise InputError("Maximum iterations must be positive.")
+        if read_type == "hifi":
+            myloasm_env = str(Path(myloasm_env).expanduser().resolve())
+        sanity_check_environment(read_type, myloasm_env)
+        _check_run_metadata(Path(args["output"]), read_type)
+        if read_type == "hifi" and count_reads(args["long_reads"]) == 0:
+            raise InputError("HiFi input contains no reads.")
+    except (InputError, OSError, ValueError, EOFError) as e:
         print(f"[iterMAG] ERROR: {e}", file=sys.stderr)
         sys.exit(1)
 
+    long_reads = args["long_reads"]
     forward = args["forward"]
     reverse = args["reverse"]
     output = args["output"]
@@ -41,7 +59,6 @@ def run_workflow(
 
     out_root = Path(output)
     out_root.mkdir(parents=True, exist_ok=True)
-
     if conda_prefix:
         conda_prefix = str(Path(conda_prefix).resolve())
         Path(conda_prefix).mkdir(parents=True, exist_ok=True)
@@ -53,9 +70,16 @@ def run_workflow(
         )
         sys.exit(1)
 
+    metadata = {"read_type": read_type, "assembler": "myloasm" if read_type == "hifi" else "megahit",
+                "myloasm_env": myloasm_env if read_type == "hifi" else None}
+    (out_root / "run_metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
+
     logger = get_logger(log_file=out_root / "pipeline.log")
     logger.info(
-        "Launching iterMAG: forward=%s reverse=%s output=%s threads=%s iterations=%s",
+        "Launching iterMAG: mode=%s long_reads=%s myloasm_env=%s forward=%s reverse=%s output=%s threads=%s iterations=%s",
+        read_type,
+        long_reads,
+        myloasm_env if read_type == "hifi" else None,
         forward,
         reverse,
         output,
@@ -77,13 +101,16 @@ def run_workflow(
         logger.info("Running iteration %s.", current_iter)
 
         if current_iter != 1:
-            prev_iter_dir = paths.iter_dir(output, current_iter - 1)
-            forward = str(paths.reads(output, current_iter - 1, 1).resolve())
-            reverse = str(paths.reads(output, current_iter - 1, 2).resolve())
+            if read_type == "hifi":
+                long_reads = str(paths.reads(output, current_iter - 1).resolve())
+            else:
+                forward = str(paths.reads(output, current_iter - 1, 1).resolve())
+                reverse = str(paths.reads(output, current_iter - 1, 2).resolve())
 
             last_iter_mags = paths.magnitude_count(output, current_iter - 1)
 
-            if not Path(forward).exists() or not Path(reverse).exists():
+            required_reads = [long_reads] if read_type == "hifi" else [forward, reverse]
+            if not all(Path(p).exists() for p in required_reads):
                 logger.warning(
                     "Previous iteration produced no unmapped reads; iterations complete."
                 )
@@ -117,12 +144,15 @@ def run_workflow(
             cmd.extend(["--conda-prefix", conda_prefix])
         cmd.extend([
             "--config",
-            f"forward={forward}",
-            f"reverse={reverse}",
+            f"read_type={read_type}",
             f"threads={threads}",
             f"iteration={current_iter}",
             f"checkm_db_path={checkm_db_path}",
         ])
+        if read_type == "hifi":
+            cmd.extend([f"long_reads={long_reads}", f"myloasm_env={myloasm_env}"])
+        else:
+            cmd.extend([f"forward={forward}", f"reverse={reverse}"])
         if genomes is not None:
             cmd.extend([f"genomes={genomes}"])
 
@@ -143,8 +173,8 @@ def run_workflow(
             )
             sys.exit(result.returncode)
 
-        reads_1 = paths.reads(output, current_iter, 1)
-        reads_2 = paths.reads(output, current_iter, 2)
+        reads_1 = paths.reads(output, current_iter, None if read_type == "hifi" else 1)
+        reads_2 = reads_1 if read_type == "hifi" else paths.reads(output, current_iter, 2)
         if not reads_1.exists() or not reads_2.exists():
             logger.error(
                 "Iteration %s finished but unmapped reads were not produced (%s).",
@@ -154,7 +184,11 @@ def run_workflow(
             sys.exit(1)
 
         n_mags = paths.magnitude_count(output, current_iter)
-        n_reads = _count_reads(reads_1)
+        try:
+            n_reads = _count_reads(reads_1)
+        except (OSError, ValueError, EOFError) as exc:
+            logger.error("Cannot read residual FASTQ: %s", exc)
+            sys.exit(1)
         logger.info(
             "Iteration %s complete: %s high-quality MAG(s), %s unmapped read(s) remain.",
             current_iter,
@@ -178,26 +212,25 @@ def run_workflow(
     logger.info("iterMAG finished successfully.")
 
 
-def _count_reads(fastq_gz):
-    try:
-        p1 = subprocess.Popen(
-            ["gzip", "-cd", str(fastq_gz)],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-        )
-        p2 = subprocess.Popen(
-            ["wc", "-l"],
-            stdin=p1.stdout,
-            stdout=subprocess.PIPE,
-            text=True,
-        )
-        p1.stdout.close()
-        out, _ = p2.communicate()
-        p1.wait()
-        lines = int(out.split()[0])
-    except Exception:
-        return 0
-    return lines // 4 if lines > 0 else 0
+def _count_reads(fastq_path):
+    return count_reads(fastq_path)
+
+
+def _check_run_metadata(output, read_type):
+    metadata_path = output / "run_metadata.json"
+    if metadata_path.exists():
+        try:
+            previous_type = json.loads(metadata_path.read_text())["read_type"]
+        except (OSError, ValueError, KeyError) as exc:
+            raise InputError(f"Cannot read run metadata: {metadata_path}: {exc}")
+    elif any(output.glob("iter_*/bin_mapping/reads.fq.gz")):
+        previous_type = "hifi"
+    elif any(output.glob("iter_*")):
+        previous_type = "short"
+    else:
+        return
+    if previous_type != read_type:
+        raise InputError(f"Output directory contains a {previous_type} run; use a new directory for {read_type}.")
 
 
 def _write_summary(output, completed_iterations):
